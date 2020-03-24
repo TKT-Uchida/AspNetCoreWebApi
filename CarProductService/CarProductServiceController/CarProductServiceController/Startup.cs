@@ -38,9 +38,14 @@ namespace CarProductServiceController
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Microsoft.AspNetCore.OData(Version="7.4.0-beta)をAddすると引数なしで指定可能。
+            // UseMvcを使うから引数なしだとexceptionが発生してしまう
             // services.AddControllers();
-            services.AddControllers().AddNewtonsoftJson(settings =>
-                settings.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            services.AddControllers(mvcOptions => 
+                mvcOptions.EnableEndpointRouting = false);
+
+            // services.AddControllers().AddNewtonsoftJson(settings =>
+            //     settings.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddDbContext<CarProductServiceContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("CarProductServiceContext"),
@@ -77,6 +82,19 @@ namespace CarProductServiceController
                 // ↓ JSONシリアル化で循環参照を無視する設定
                 // options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             // }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddOData();
+
+            // services.AddMvcCore(options =>
+            // {
+            //     IEnumerable<ODataOutputFormatter> outputFormatters =
+            //         options.OutputFormatters.OfType<ODataOutputFormatter>()
+            //             .Where(foramtter => foramtter.SupportedMediaTypes.Count == 0);
+
+            //     foreach (var outputFormatter in outputFormatters)
+            //     {
+            //         outputFormatter.SupportedMediaTypes.Add(new MediaTypeHeaderValue("application/odata"));
+            //     }
+            // });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -101,10 +119,37 @@ namespace CarProductServiceController
 
             app.UseAuthorization();
 
+            app.UseMvc(routeBuilder =>
+            {
+                routeBuilder.EnableDependencyInjection();
+                routeBuilder.Expand().Select().Filter().Count().OrderBy().MaxTop(null).SkipToken();
+                routeBuilder.MapODataServiceRoute("odateRoute","odata",GetEdmModel());
+            });
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                // Microsoft.AspNetCore.OData(Version="7.4.0-beta)をAddするとここで指定可能。
+                // endpoints.EnableDependencyInjection();
+                // endpoints.Select().Filter().Expand().MaxTop(10);
+                // endpoints.MapODataRoute("odata", "odata", GetEdmModel());
             });
+        }
+
+        private IEdmModel GetEdmModel()
+        {
+            var odataBuilder = new ODataConventionModelBuilder();
+
+            odataBuilder.EntitySet<CarMaker>(nameof(CarMaker));
+            odataBuilder.EntityType<CarMaker>().HasKey(c => c.MakerId);
+            // odataBuilder.EntityType<PackedSales>().HasMany(f => f.Sales);
+            
+            // odataBuilder.EntitySet<Sales>(nameof(Sales));
+            // odataBuilder.EntityType<Sales>().HasKey(c => new { c.SalesNo, c.PSalesNo });
+
+            // odataBuilder.EntityType<Sales>().Ignore(s => s.Price); // Passwordなんか除外することができる
+ 
+            return odataBuilder.GetEdmModel();
         }
     }
 }

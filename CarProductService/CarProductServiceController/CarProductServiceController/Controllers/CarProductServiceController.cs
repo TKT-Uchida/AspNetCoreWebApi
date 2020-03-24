@@ -8,13 +8,22 @@ using Microsoft.EntityFrameworkCore;
 using CarProductServiceModel.Data;
 using CarProductServiceModel.Models;
 using CarProductServiceLogic.Logics;
+using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Query;
+using Microsoft.AspNet.OData.Routing;
 
 namespace CarProductServiceController.Controllers
 {
-    [Produces("application/json")]
+    // OData Swagger 統合プロジェクト 参考
+    // https://github.com/hassanhabib/OData3.1WithSwagger
+
+    // [Produces("application/json")]
+    // [Route("odata/[controller]")]
     [Route("api/[controller]")]
+    [ODataRoutePrefix("CarMaker")]
     [ApiController]
-    public class CarProductServiceController : ControllerBase
+    [ApiExplorerSettings(IgnoreApi = false)]
+    public class CarProductServiceController : ODataController
     {
         private readonly CarProductServiceContext _context;
 
@@ -28,10 +37,12 @@ namespace CarProductServiceController.Controllers
 
         // GET: api/CarProductService
         [HttpGet]
+        [ODataRoute]
+        [EnableQuery]
         public async Task<ActionResult<IEnumerable<CarMaker>>> GetCarMaker()
         {
             // return await _context.CarMaker.ToListAsync();
-            return Ok(await _logic.GetCarMaker());
+            return Ok(await _logic.GetCarMakerAsync());
         }
 
         // GET: api/CarProductService/5
@@ -39,7 +50,7 @@ namespace CarProductServiceController.Controllers
         public async Task<ActionResult<CarMaker>> GetCarMaker(int id)
         {
             // var carMaker = await _context.CarMaker.FindAsync(id);
-            var carMaker = await _logic.GetCarMaker(id);
+            var carMaker = await _logic.GetCarMakerAsync(id);
 
             if (carMaker == null)
             {
@@ -63,7 +74,7 @@ namespace CarProductServiceController.Controllers
             try
             {
                 // await _context.SaveChangesAsync();
-                await _logic.PutCarMaker(id, carMaker);
+                await _logic.PutCarMakerAsync(id, carMaker);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -106,7 +117,7 @@ namespace CarProductServiceController.Controllers
         {
             // _context.CarMaker.Add(carMaker);
             // await _context.SaveChangesAsync();
-            await _logic.PostCarMaker(carMaker);
+            await _logic.PostCarMakerAsync(carMaker);
 
             return CreatedAtAction(nameof(GetCarMaker), new { id = carMaker.MakerId }, carMaker);
         }
@@ -116,7 +127,7 @@ namespace CarProductServiceController.Controllers
         public async Task<ActionResult<CarMaker>> DeleteCarMaker(int id)
         {
             // var carMaker = await _context.CarMaker.FindAsync(id);
-            var carMaker = await _logic.DeleteCarMaker(id);
+            var carMaker = await _logic.DeleteCarMakerAsync(id);
             
             if (carMaker == null)
             {
