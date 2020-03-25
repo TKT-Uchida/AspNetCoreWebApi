@@ -17,13 +17,13 @@ namespace CarProductServiceController.Controllers
     // OData Swagger 統合プロジェクト 参考
     // https://github.com/hassanhabib/OData3.1WithSwagger
 
-    // [Produces("application/json")]
+    [Produces("application/json")]
     // [Route("odata/[controller]")]
     [Route("api/[controller]")]
-    [ODataRoutePrefix("CarMaker")]
+    // [ODataRoutePrefix("CarMaker")]
     [ApiController]
-    [ApiExplorerSettings(IgnoreApi = false)]
-    public class CarProductServiceController : ODataController
+    // [ApiExplorerSettings(IgnoreApi = false)]
+    public class CarProductServiceController : ControllerBase
     {
         private readonly CarProductServiceContext _context;
 
@@ -37,8 +37,8 @@ namespace CarProductServiceController.Controllers
 
         // GET: api/CarProductService
         [HttpGet]
-        [ODataRoute]
-        [EnableQuery]
+        // [ODataRoute]
+        // [EnableQuery]
         public async Task<ActionResult<IEnumerable<CarMaker>>> GetCarMaker()
         {
             // return await _context.CarMaker.ToListAsync();

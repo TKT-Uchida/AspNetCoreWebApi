@@ -41,11 +41,12 @@ namespace CarProductServiceController
             // Microsoft.AspNetCore.OData(Version="7.4.0-beta)をAddすると引数なしで指定可能。
             // UseMvcを使うから引数なしだとexceptionが発生してしまう
             // services.AddControllers();
-            services.AddControllers(mvcOptions => 
-                mvcOptions.EnableEndpointRouting = false);
+            // services.AddControllers(mvcOptions => 
+            //     mvcOptions.EnableEndpointRouting = false);
 
-            // services.AddControllers().AddNewtonsoftJson(settings =>
-            //     settings.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            // ↓ JSONシリアル化で循環参照を無視する設定
+            services.AddControllers().AddNewtonsoftJson(settings =>
+                settings.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
             services.AddDbContext<CarProductServiceContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("CarProductServiceContext"),
@@ -78,11 +79,7 @@ namespace CarProductServiceController
                 c.IncludeXmlComments(xmlPath);
             });
 
-            // services.AddMvc().AddJsonOptions(options => {
-                // ↓ JSONシリアル化で循環参照を無視する設定
-                // options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-            // }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddOData();
+            // services.AddOData();
 
             // services.AddMvcCore(options =>
             // {
@@ -119,12 +116,12 @@ namespace CarProductServiceController
 
             app.UseAuthorization();
 
-            app.UseMvc(routeBuilder =>
-            {
-                routeBuilder.EnableDependencyInjection();
-                routeBuilder.Expand().Select().Filter().Count().OrderBy().MaxTop(null).SkipToken();
-                routeBuilder.MapODataServiceRoute("odateRoute","odata",GetEdmModel());
-            });
+            // app.UseMvc(routeBuilder =>
+            // {
+            //     routeBuilder.EnableDependencyInjection();
+            //     routeBuilder.Expand().Select().Filter().Count().OrderBy().MaxTop(null).SkipToken();
+            //     routeBuilder.MapODataServiceRoute("odateRoute","odata",GetEdmModel());
+            // });
 
             app.UseEndpoints(endpoints =>
             {

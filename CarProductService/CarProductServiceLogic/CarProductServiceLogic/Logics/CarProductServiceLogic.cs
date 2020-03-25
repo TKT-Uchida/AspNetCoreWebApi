@@ -49,15 +49,18 @@ namespace CarProductServiceLogic.Logics
         {
             var prevCarMaker = await GetCarMakerAsync(id);
             carMaker.ExclusiveKey = prevCarMaker.ExclusiveKey;
-            // _context.Entry(carMaker).State = EntityState.Modified;
-            carMaker.CarMakerLangs.ForEach(a =>
-                a.ExclusiveKey = prevCarMaker.CarMakerLangs
-                                    .SingleOrDefault(s => s.MakerId == a.MakerId && s.LangId == a.LangId)
-                                    .ExclusiveKey
-            );
-            // _context.Entry(carMaker).State = EntityState.Modified;
-            // _context.Entry(carMaker.CarMakerLangs).State = EntityState.Modified;
-            _context.Update(carMaker);
+            
+            var carMakerLangLogic = new CarMakerLangLogic(_context);
+            await carMakerLangLogic.PutCarMakerLangAsync(carMaker.CarMakerLangs);
+
+            var carProductLogic = new CarProductLogic(_context);
+            await carProductLogic.PutCarProductAsync(carMaker.CarProducts);
+
+            var carSalesYearLogic = new CarSalesYearLogic(_context);
+            await carSalesYearLogic.PutCarSalesYearAsync(carMaker.CarSalesYears);
+
+            _context.Entry(carMaker).State = EntityState.Modified;
+            // _context.Update(carMaker);
 
             try
             {
